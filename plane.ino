@@ -19,15 +19,14 @@ void loop() {
   int analogValue1 = analogRead(A0);
   int analogValue2 = analogRead(A1);
 
-  int angle = map(analogValue1, 0,1023, 0, 30);
-  int angle2 = map(analogValue1, 0, 1023, 90, 0);
+  int angle = map(analogValue1, 0,1023, -30, 30);
 
   int angle3 = map(analogValue2, 0, 1023, -30, 30);
 
-  int 
-
-  int angleR = angle+angle3;
-  int angleL = angle2+angle3;
+  int angleR = 45+angle;
+  int angleL = 45-angle;
+  angleR = angleR+angle3;
+  angleL = angleL+angle3;
 
   if (angleR > 90){
     angleR = 90;
