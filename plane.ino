@@ -1,33 +1,72 @@
 
 #include <Servo.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+#include <Wire.h>
+#include <QuickPID.h>
+
+float x, y, z, pitch, roll, setPitch, setRoll;
+float Kp = 0.5, Ki = 0.2, Kd = 0.3;
+
+
 
 Servo myservo_R;
 Servo myservo_L;
 
-// the setup routine runs once when you press reset:
+Adafruit_MPU6050 mpu;
+QuickPID pitchPID(&y, &pitch, &setPitch);
+QuickPID rollPID(&x, &roll, &setRoll);
+
+
+sensors_event_t a, g, temp;
+
+
 void setup() {
-  // initialize serial communication at 9600 bits per second:
+
   Serial.begin(9600);
+
+  y = 0;
+  setPitch = 0;
+  x = 0;
+  setRoll = 0;
+  rollPID.SetTunings(Kp, Ki, Kd);
+  rollPID.SetMode(rollPID.Control::automatic);
+  rollPID.SetOutputLimits(-35,35);
+  pitchPID.SetTunings(Kp*3, Ki*2, Kd*2);
+  pitchPID.SetMode(pitchPID.Control::automatic);
+  pitchPID.SetOutputLimits(-30,30);
+
+  if (!mpu.begin()) {
+    Serial.println("Failed to find MPU6050 chip");
+    while (1) {
+      delay(10);
+    }
+  }
 
   myservo_R.attach(5);
   myservo_L.attach(3);
+
+  delay(100);
+  
 }
 
-// the loop routine runs over and over again forever:
-void loop() {
-  // read the input on analog pin A0:
-  int analogValue1 = analogRead(A0);
-  int analogValue2 = analogRead(A1);
+void loop() 
+{
+  mpu.getEvent(&a, &g, &temp);
+   x  = a.orientation.x * 10;
+   y  = a.orientation.y * 10;
+   //z  = a.orientation.z * 10;
 
-  int angle = map(analogValue1, 0,1023, -30, 30);
 
-  int angle3 = map(analogValue2, 0, 1023, -30, 30);
 
-  int angleR = 45+angle;
-  int angleL = 45-angle;
-  angleR = angleR+angle3;
-  angleL = angleL+angle3;
+  pitchPID.Compute();
+  rollPID.Compute();
+  int angleR = 45-pitch;
+  int angleL = 45+pitch;
 
+    angleR = angleR+roll;
+    angleL = angleL+roll;
+  
   if (angleR > 90){
     angleR = 90;
   }
@@ -43,16 +82,24 @@ void loop() {
 
   myservo_R.write(angleR);
   myservo_L.write(angleL);
+
+  
   // print 
-  Serial.print("POT1: ");
-  Serial.print(analogValue1);
-  Serial.print(" POT2: ");
-  Serial.print(analogValue2);
+  /*
+  Serial.print("y: ");
+  Serial.print(y);
+  Serial.print(" pitch: ");
+  Serial.print(pitch);
+  Serial.print("     angle_R: ");
+  Serial.print("x: ");
+  Serial.print(x);
+  Serial.print(" roll: ");
+  Serial.print(roll);
   Serial.print("     angle_R: ");
   Serial.print(angleR);
   Serial.print(" angle_L: ");
-  Serial.println(angleL);
-
+  Serial.println(90-angleL);
+*/
 
   
 }
