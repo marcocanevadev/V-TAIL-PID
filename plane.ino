@@ -16,6 +16,17 @@
   License along with this library; if not, write to the Free Software
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
   or go to: https://www.gnu.org/licenses/gpl-3.0.txt
+
+  For inquiries, please contact:
+
+  Marco Caneva
+  
+  Email:  marco.caneva@example.com
+
+  Mail:   Marco Caneva
+          Via Dei Ciclamini 33
+          20147 Milan (MI)
+          Italy
 */
 
 
