@@ -76,7 +76,7 @@ void setup() {
   pitchPID.SetMode(pitchPID.Control::automatic);
   pitchPID.SetOutputLimits(-30,30);
 
-  heightPID.SetTunings(Kp, Ki, Kd);
+  heightPID.SetTunings(1,0,0);
   heightPID.SetMode(rollPID.Control::automatic);
   heightPID.SetOutputLimits(-10,10);
 
@@ -111,15 +111,8 @@ void loop()
 
   //z = gps.altitude.meters();
 
-  if (z < setHeight) // SOSTITUTIVA IN ATTESA DI MODULO GPS
-  {
-    z+= 0.3;
-  }
-  else
-  {
-    z-= 1.0 ;
-  }
-
+  z = analogRead(A0) / 102.3 * 2; //simuliamo il GPS
+  //z = 10;
   heightPID.Compute();
   pitchPID.Compute();
   rollPID.Compute();
@@ -147,7 +140,14 @@ void loop()
   myservo_L.write(angleL);
 
   Serial.print(z);
-  Serial.println(setPitch);
+  Serial.print("  ");
+  Serial.print(y);
+  Serial.print("  ");
+  Serial.print(pitch);
+  Serial.print("  ");
+  Serial.print(setPitch);
+  Serial.print("  ");
+  Serial.println(setHeight);
   // print 
   /*
   Serial.print("y: ");
