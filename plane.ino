@@ -69,10 +69,10 @@ void setup() {
   //z = gps.altitude.meters();
   z = 0; // SOSTITUIVA IN ASSENZA DI MODULO GPS
   setHeight = z+10;
-  rollPID.SetTunings(Kp, Ki, Kd);
+  rollPID.SetTunings(0.8, 0.1, 0.1);
   rollPID.SetMode(rollPID.Control::automatic);
   rollPID.SetOutputLimits(-35,35);
-  pitchPID.SetTunings(Kp*3, Ki*2, Kd*2);
+  pitchPID.SetTunings(Kp, Ki, Kd);
   pitchPID.SetMode(pitchPID.Control::automatic);
   pitchPID.SetOutputLimits(-30,30);
 
