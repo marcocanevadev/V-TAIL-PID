@@ -31,7 +31,10 @@
 #include <Wire.h>
 #include <QuickPID.h>
 
-float x, y, z, pitch, roll, setPitch, setRoll;
+//#include <TinyGPS.h>
+//TinyGPS gps;
+//SoftwareSerial ss(4, 3); // pin 4=RX, pin 3=TX
+float x, y, z, pitch, roll, setPitch, setRoll, setHeight;
 float Kp = 0.5, Ki = 0.2, Kd = 0.3;
 
 
@@ -43,6 +46,7 @@ Adafruit_MPU6050 mpu;
 QuickPID pitchPID(&y, &pitch, &setPitch);
 QuickPID rollPID(&x, &roll, &setRoll);
 
+QuickPID heightPID(&z, &setPitch, &setHeight);
 
 sensors_event_t a, g, temp;
 
@@ -51,16 +55,30 @@ void setup() {
 
   Serial.begin(9600);
 
+  
+  /* Probabilente questo snippet va messo in una funzione temporizzata o legato a un task.
+  while (ss.available() > 0)
+  {
+    gps.encode(ss.read);
+  }*/
+
   y = 0;
   setPitch = 0;
   x = 0;
   setRoll = 0;
+  //z = gps.altitude.meters();
+  z = 0; // SOSTITUIVA IN ASSENZA DI MODULO GPS
+  setHeight = z+10;
   rollPID.SetTunings(Kp, Ki, Kd);
   rollPID.SetMode(rollPID.Control::automatic);
   rollPID.SetOutputLimits(-35,35);
   pitchPID.SetTunings(Kp*3, Ki*2, Kd*2);
   pitchPID.SetMode(pitchPID.Control::automatic);
   pitchPID.SetOutputLimits(-30,30);
+
+  heightPID.SetTunings(Kp, Ki, Kd);
+  heightPID.SetMode(rollPID.Control::automatic);
+  heightPID.SetOutputLimits(-10,10);
 
   if (!mpu.begin()) {
     Serial.println("Failed to find MPU6050 chip");
@@ -69,8 +87,10 @@ void setup() {
     }
   }
 
-  myservo_R.attach(5);
-  myservo_L.attach(3);
+  myservo_R.attach(5); // right aileron (left servo)
+  myservo_L.attach(3); // Left aileron (right servo)
+
+  
 
   delay(100);
   
@@ -81,17 +101,34 @@ void loop()
   mpu.getEvent(&a, &g, &temp);
    x  = a.orientation.x * 10;
    y  = a.orientation.y * 10;
-   //z  = a.orientation.z * 10;
+   
+  /*
+  while (ss.available() > 0)
+  {
+    gps.encode(ss.read);
+  }
+  */
 
+  //z = gps.altitude.meters();
 
+  if (z < setHeight) // SOSTITUTIVA IN ATTESA DI MODULO GPS
+  {
+    z+= 0.3;
+  }
+  else
+  {
+    z-= 1.0 ;
+  }
 
+  heightPID.Compute();
   pitchPID.Compute();
   rollPID.Compute();
+  
   int angleR = 45-pitch;
   int angleL = 45+pitch;
 
-    angleR = angleR+roll;
-    angleL = angleL+roll;
+  angleR = angleR+roll;
+  angleL = angleL+roll;
   
   if (angleR > 90){
     angleR = 90;
@@ -109,7 +146,8 @@ void loop()
   myservo_R.write(angleR);
   myservo_L.write(angleL);
 
-  
+  Serial.print(z);
+  Serial.println(setPitch);
   // print 
   /*
   Serial.print("y: ");
